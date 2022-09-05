@@ -183,7 +183,7 @@ namespace Kogane
         {
             if ( !m_isOpen ) return;
 
-            var text = m_getText();
+            var text = m_getText?.Invoke() ?? string.Empty;
 
             if ( m_textUI.text == text ) return;
 
