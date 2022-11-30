@@ -48,6 +48,7 @@ namespace Kogane
         private Func<string> m_getText;
         private float        m_interval;
         private float        m_timer;
+        private bool         m_isNeedUpdate;
 
         //====================================================================================
         // 変数(static)
@@ -94,7 +95,7 @@ namespace Kogane
         private void Update()
         {
             if ( !m_isOpen ) return;
-            if ( m_interval <= 0 ) return;
+            if ( !m_isNeedUpdate ) return;
 
             m_timer += Time.unscaledDeltaTime;
 
@@ -147,7 +148,12 @@ namespace Kogane
 #endif
         public void Setup( string text )
         {
-            Setup( 0, () => text );
+            Setup
+            (
+                interval: 0,
+                isNeedUpdate: false,
+                getText: () => text
+            );
         }
 
         /// <summary>
@@ -158,7 +164,12 @@ namespace Kogane
 #endif
         public void Setup( Func<string> getText )
         {
-            Setup( 1, getText );
+            Setup
+            (
+                interval: 1,
+                isNeedUpdate: true,
+                getText: getText
+            );
         }
 
         /// <summary>
@@ -167,10 +178,32 @@ namespace Kogane
 #if KOGANE_DISABLE_UI_DEBUG_TEXT
         [Conditional( DISABLE_CONDITION_STRING )]
 #endif
-        public void Setup( float interval, Func<string> getText )
+        public void SetupEveryFrame( Func<string> getText )
         {
-            m_interval = interval;
-            m_getText  = getText;
+            Setup
+            (
+                interval: 0,
+                isNeedUpdate: true,
+                getText: getText
+            );
+        }
+
+        /// <summary>
+        /// 表示を設定します
+        /// </summary>
+#if KOGANE_DISABLE_UI_DEBUG_TEXT
+        [Conditional( DISABLE_CONDITION_STRING )]
+#endif
+        public void Setup
+        (
+            float        interval,
+            bool         isNeedUpdate,
+            Func<string> getText
+        )
+        {
+            m_interval     = interval;
+            m_isNeedUpdate = isNeedUpdate;
+            m_getText      = getText;
 
             UpdateText();
             UpdateSize();
