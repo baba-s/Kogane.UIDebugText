@@ -5,7 +5,9 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -53,7 +55,28 @@ namespace Kogane
         //====================================================================================
         // 変数(static)
         //====================================================================================
-        private static bool m_isOpen;
+        private static bool            m_isOpen;
+        private static List<DebugText> m_debugTexts;
+        private static bool            m_isDisable;
+
+        //================================================================================
+        // プロパティ
+        //================================================================================
+        public static bool IsDisable
+        {
+            get => m_isDisable;
+            set
+            {
+                m_isDisable = value;
+                if ( m_debugTexts == null ) return;
+                foreach ( var debugText in m_debugTexts.Where( x => x != null ) )
+                {
+                    Destroy( debugText.gameObject );
+                }
+
+                m_debugTexts.Clear();
+            }
+        }
 
         //====================================================================================
         // 関数
@@ -66,10 +89,29 @@ namespace Kogane
 #if KOGANE_DISABLE_UI_DEBUG_TEXT
             Destroy( gameObject );
 #else
+            if ( IsDisable )
+            {
+                Destroy( gameObject );
+                return;
+            }
+
+            m_debugTexts.Add( this );
+
             m_closeButtonUI.onClick.AddListener( () => SetState( false ) );
             m_openButtonUI.onClick.AddListener( () => SetState( true ) );
 #endif
         }
+
+#if KOGANE_DISABLE_UI_DEBUG_TEXT
+#else
+        /// <summary>
+        /// 破棄される時に呼び出されます
+        /// </summary>
+        private void OnDestroy()
+        {
+            m_debugTexts.Remove( this );
+        }
+#endif
 
 #if KOGANE_DISABLE_UI_DEBUG_TEXT
 #else
@@ -117,6 +159,8 @@ namespace Kogane
 #endif
         private void SetState( bool isOpen )
         {
+            if ( this == null ) return;
+
             m_isOpen = isOpen;
 
             m_openBaseUI.SetActive( isOpen );
@@ -136,6 +180,8 @@ namespace Kogane
 #endif
         public void SetVisible( bool isVisible )
         {
+            if ( this == null ) return;
+
             var alpha = isVisible ? 1 : 0;
             m_canvasGroup.alpha = alpha;
         }
@@ -148,6 +194,8 @@ namespace Kogane
 #endif
         public void Setup( string text )
         {
+            if ( this == null ) return;
+
             Setup
             (
                 interval: 0,
@@ -164,6 +212,8 @@ namespace Kogane
 #endif
         public void Setup( Func<string> getText )
         {
+            if ( this == null ) return;
+
             Setup
             (
                 interval: 1,
@@ -180,6 +230,8 @@ namespace Kogane
 #endif
         public void SetupEveryFrame( Func<string> getText )
         {
+            if ( this == null ) return;
+
             Setup
             (
                 interval: 0,
@@ -201,6 +253,8 @@ namespace Kogane
             Func<string> getText
         )
         {
+            if ( this == null ) return;
+
             m_interval     = interval;
             m_isNeedUpdate = isNeedUpdate;
             m_getText      = getText;
@@ -214,6 +268,7 @@ namespace Kogane
         /// </summary>
         private void UpdateText()
         {
+            if ( this == null ) return;
             if ( !m_isOpen ) return;
 
             var text = m_getText?.Invoke() ?? string.Empty;
@@ -228,6 +283,8 @@ namespace Kogane
         /// </summary>
         private void UpdateSize()
         {
+            if ( this == null ) return;
+
             StartCoroutine( DoUpdateSize() );
         }
 
@@ -262,7 +319,9 @@ namespace Kogane
         [RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.BeforeSceneLoad )]
         private static void RuntimeInitializeOnLoadMethod()
         {
-            m_isOpen = false;
+            m_isOpen      = false;
+            m_debugTexts = new();
+            m_isDisable   = false;
         }
 #endif
     }
