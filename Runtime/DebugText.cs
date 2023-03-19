@@ -41,10 +41,12 @@ namespace Kogane
         [SerializeField] private Text          m_textUI;
         [SerializeField] private RectTransform m_textRectUI;
         [SerializeField] private Vector2       m_sizeOffset = Vector2.zero;
+        [SerializeField] private GameObject    m_safePanelArea;
 
         //====================================================================================
         // 変数
         //====================================================================================
+        private bool         m_isInitialize;
         private string       m_currentText;
         private Vector2      m_currentTextSize;
         private Func<string> m_getText;
@@ -87,8 +89,22 @@ namespace Kogane
         private void Awake()
         {
 #if KOGANE_DISABLE_UI_DEBUG_TEXT
-            Destroy( gameObject );
+            // Destroy( gameObject );
 #else
+            Initialize();
+#endif
+        }
+
+        /// <summary>
+        /// 初期化します
+        /// </summary>
+        private void Initialize()
+        {
+            if ( m_isInitialize ) return;
+            m_isInitialize = true;
+
+            m_safePanelArea.SetActive( true );
+
             if ( IsDisable )
             {
                 Destroy( gameObject );
@@ -99,7 +115,6 @@ namespace Kogane
 
             m_closeButtonUI.onClick.AddListener( () => SetState( false ) );
             m_openButtonUI.onClick.AddListener( () => SetState( true ) );
-#endif
         }
 
 #if KOGANE_DISABLE_UI_DEBUG_TEXT
@@ -120,6 +135,8 @@ namespace Kogane
         /// </summary>
         private void Start()
         {
+            Initialize();
+
             m_root.SetActive( true );
             m_openBaseUI.SetActive( false );
             m_closeBaseUI.SetActive( true );
@@ -136,6 +153,8 @@ namespace Kogane
         [Conditional( DISABLE_CONDITION_STRING )]
         private void Update()
         {
+            Initialize();
+
             if ( !m_isOpen ) return;
             if ( !m_isNeedUpdate ) return;
 
@@ -161,6 +180,8 @@ namespace Kogane
         {
             if ( this == null ) return;
 
+            Initialize();
+
             m_isOpen = isOpen;
 
             m_openBaseUI.SetActive( isOpen );
@@ -182,6 +203,8 @@ namespace Kogane
         {
             if ( this == null ) return;
 
+            Initialize();
+
             var alpha = isVisible ? 1 : 0;
             m_canvasGroup.alpha = alpha;
         }
@@ -195,6 +218,8 @@ namespace Kogane
         public void Setup( string text )
         {
             if ( this == null ) return;
+
+            Initialize();
 
             Setup
             (
@@ -214,6 +239,8 @@ namespace Kogane
         {
             if ( this == null ) return;
 
+            Initialize();
+
             Setup
             (
                 interval: 1,
@@ -231,6 +258,8 @@ namespace Kogane
         public void SetupEveryFrame( Func<string> getText )
         {
             if ( this == null ) return;
+
+            Initialize();
 
             Setup
             (
@@ -255,6 +284,8 @@ namespace Kogane
         {
             if ( this == null ) return;
 
+            Initialize();
+
             m_interval     = interval;
             m_isNeedUpdate = isNeedUpdate;
             m_getText      = getText;
@@ -269,6 +300,9 @@ namespace Kogane
         private void UpdateText()
         {
             if ( this == null ) return;
+
+            Initialize();
+
             if ( !m_isOpen ) return;
 
             var text = m_getText?.Invoke() ?? string.Empty;
@@ -284,6 +318,8 @@ namespace Kogane
         private void UpdateSize()
         {
             if ( this == null ) return;
+
+            Initialize();
 
             StartCoroutine( DoUpdateSize() );
         }
@@ -319,9 +355,9 @@ namespace Kogane
         [RuntimeInitializeOnLoadMethod( RuntimeInitializeLoadType.BeforeSceneLoad )]
         private static void RuntimeInitializeOnLoadMethod()
         {
-            m_isOpen      = false;
+            m_isOpen     = false;
             m_debugTexts = new();
-            m_isDisable   = false;
+            m_isDisable  = false;
         }
 #endif
     }
