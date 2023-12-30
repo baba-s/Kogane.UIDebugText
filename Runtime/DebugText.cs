@@ -137,7 +137,6 @@ namespace Kogane
         {
             Initialize();
 
-            m_root.SetActive( true );
             m_openBaseUI.SetActive( false );
             m_closeBaseUI.SetActive( true );
 
@@ -155,6 +154,10 @@ namespace Kogane
         {
             Initialize();
 
+            var text = GetText();
+
+            UpdateRoot( text );
+
             if ( !m_isOpen ) return;
             if ( !m_isNeedUpdate ) return;
 
@@ -164,7 +167,7 @@ namespace Kogane
 
             m_timer -= m_interval;
 
-            UpdateText();
+            UpdateText( text );
             UpdateSize();
         }
 
@@ -187,9 +190,13 @@ namespace Kogane
             m_openBaseUI.SetActive( isOpen );
             m_closeBaseUI.SetActive( !isOpen );
 
+            var text = GetText();
+
+            UpdateRoot( text );
+
             if ( !isOpen ) return;
 
-            UpdateText();
+            UpdateText( text );
             UpdateSize();
         }
 
@@ -290,23 +297,39 @@ namespace Kogane
             m_isNeedUpdate = isNeedUpdate;
             m_getText      = getText;
 
-            UpdateText();
+            var text = GetText();
+
+            UpdateRoot( text );
+            UpdateText( text );
             UpdateSize();
+        }
+
+        /// <summary>
+        /// テキストを返します
+        /// </summary>
+        private string GetText()
+        {
+            return m_getText?.Invoke() ?? string.Empty;
+        }
+
+        /// <summary>
+        /// ルートを表示するかどうかを設定します
+        /// </summary>
+        private void UpdateRoot( string text )
+        {
+            m_root.SetActive( !string.IsNullOrWhiteSpace( text ) );
         }
 
         /// <summary>
         /// テキストを更新します
         /// </summary>
-        private void UpdateText()
+        private void UpdateText( string text )
         {
             if ( this == null ) return;
 
             Initialize();
 
             if ( !m_isOpen ) return;
-
-            var text = m_getText?.Invoke() ?? string.Empty;
-
             if ( m_textUI.text == text ) return;
 
             m_textUI.text = text;
